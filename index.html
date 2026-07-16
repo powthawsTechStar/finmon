@@ -297,6 +297,8 @@ input,button,select,textarea{
 }
 .prof-nm{font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:#fff;}
 .prof-sub{color:rgba(255,255,255,.5);font-size:12px;margin-top:2px;}
+.prof-edit{display:inline-block;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;margin-top:8px;padding:4px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);transition:all .2s;user-select:none;}
+.prof-edit:active{background:rgba(255,255,255,.1);color:#fff;}
 .plan-chip{
   display:inline-block;background:var(--saffron);color:#fff;
   font-size:11px;font-weight:700;padding:3px 14px;border-radius:20px;margin-top:8px;
@@ -672,9 +674,10 @@ input,button,select,textarea{
   <!-- ═══════════ SETTINGS SCREEN (CRUD HUB) ═══════════ -->
   <div class="screen" id="screen-settings">
     <div class="prof-hero">
-      <div class="prof-av">A</div>
-      <div class="prof-nm">Arun Kumar</div>
-      <div class="prof-sub">Software Engineer · Chennai, TN</div>
+      <div class="prof-av" id="profAv">A</div>
+      <div class="prof-nm" id="profName">Arun Kumar</div>
+      <div class="prof-sub" id="profSub">Software Engineer · Chennai, TN</div>
+      <div class="prof-edit" onclick="openProfileEditor()">✏️ Edit Profile</div>
       <div class="plan-chip">Free Plan</div>
     </div>
 
@@ -850,6 +853,23 @@ input,button,select,textarea{
   </div>
 </div>
 
+<!-- ═══════════ PROFILE EDITOR MODAL ═══════════ -->
+<div class="overlay" id="profOverlay" onclick="closeIfOutside(event,'profOverlay')">
+  <div class="sheet small-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Edit Profile</div>
+    <div class="f-grp">
+      <div class="f-lbl">Name</div>
+      <input class="f-inp" id="profEditName" type="text" placeholder="Your name" autocomplete="off">
+    </div>
+    <div class="f-grp">
+      <div class="f-lbl">Title & Location</div>
+      <input class="f-inp" id="profEditSub" type="text" placeholder="e.g. Engineer · Chennai, TN" autocomplete="off">
+    </div>
+    <button class="sub-btn" onclick="saveProfile()">Save Profile ✓</button>
+  </div>
+</div>
+
 <!-- ═══════════ CATEGORY MANAGER MODAL ═══════════ -->
 <div class="overlay" id="catOverlay" onclick="closeIfOutside(event,'catOverlay')">
   <div class="sheet">
@@ -970,6 +990,36 @@ if(!txns.length){
 function saveTxns(){localStorage.setItem('qf_txns',JSON.stringify(txns));}
 function saveBudgets(){localStorage.setItem('qf_budgets',JSON.stringify(budgets));}
 function saveGoals(){localStorage.setItem('qf_goals',JSON.stringify(goals));}
+
+// ── PROFILE CRUD ──
+let profile={name:'Arun Kumar',sub:'Software Engineer · Chennai, TN'};
+function loadProfile(){
+  const saved=JSON.parse(localStorage.getItem('qf_profile')||'null');
+  if(saved){profile=saved;}
+}
+function saveProfileStore(){localStorage.setItem('qf_profile',JSON.stringify(profile));}
+function renderProfile(){
+  const initial=profile.name.charAt(0).toUpperCase();
+  document.getElementById('profAv').textContent=initial;
+  document.getElementById('profName').textContent=profile.name;
+  document.getElementById('profSub').textContent=profile.sub;
+}
+function openProfileEditor(){
+  document.getElementById('profEditName').value=profile.name;
+  document.getElementById('profEditSub').value=profile.sub;
+  document.getElementById('profOverlay').classList.add('open');
+}
+function saveProfile(){
+  const name=document.getElementById('profEditName').value.trim();
+  const sub=document.getElementById('profEditSub').value.trim();
+  if(!name){toast('Please enter your name');return;}
+  profile={name,sub:sub||'India'};
+  saveProfileStore();
+  renderProfile();
+  document.getElementById('profOverlay').classList.remove('open');
+  toast('✅ Profile updated');
+}
+loadProfile();
 
 // ── CATEGORY CRUD ──
 let catMgrType='expense';
@@ -1428,6 +1478,7 @@ setTimeout(()=>{
   sp.style.opacity='0';
   setTimeout(()=>sp.style.display='none',600);
 },2000);
+renderProfile();
 updateDash();
 updateCatCounts();
 
