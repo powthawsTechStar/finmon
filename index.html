@@ -618,8 +618,6 @@ input,button,select,textarea{
       </div>
     </div>
 
-    <div class="sec-title">Recent Transactions <a onclick="navigate('txns')">See All →</a></div>
-    <div class="txn-list" id="recentList"></div>
   </div>
 
   <!-- ═══════════ TRANSACTIONS SCREEN ═══════════ -->
@@ -1147,7 +1145,6 @@ function updateDash(){
 
   const chips=pct>30?'🔥 Great savings rate!':pct>15?'👍 Keep it up!':inc>0?'⚠️ Save ₹'+fmt(Math.round(inc*0.2-bal)+500)+' more':'💡 Add income first';
   document.getElementById('insightChip').textContent=chips;
-  renderRecent();
 }
 
 // ── TRANSACTION RENDERING ──
@@ -1173,11 +1170,6 @@ function txnClick(id){
   const already=el.classList.contains('swiped');
   document.querySelectorAll('.txn-item.swiped').forEach(e=>e.classList.remove('swiped'));
   if(!already)el.classList.add('swiped');
-}
-function renderRecent(){
-  const list=monthTxns().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
-  const el=document.getElementById('recentList');
-  el.innerHTML=list.length?list.map(t=>txnHTML(t)).join(''):`<div class="txn-empty"><div class="big-e">💼</div>No transactions yet.<br>Tap <b>+</b> to add one!</div>`;
 }
 function renderAllTxns(){
   let list=monthTxns().sort((a,b)=>new Date(b.date)-new Date(a.date));
