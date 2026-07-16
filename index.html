@@ -488,6 +488,21 @@ input,button,select,textarea{
 .fpill:active{transform:scale(.95);}
 .fpill.active{background:var(--navy);color:#fff;}
 
+/* ── CATEGORY MANAGER ── */
+.cat-mgr-type{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.cat-mgr-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.cat-mgr-row{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:var(--rs);padding:8px 10px;border:1px solid var(--border);}
+.cat-mgr-row .cme{font-size:20px;width:24px;text-align:center;}
+.cat-mgr-row .cml{flex:1;font-size:13px;font-weight:500;color:var(--t1);}
+.cat-mgr-row .cmdel{font-size:14px;color:var(--red);cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s;user-select:none;}
+.cat-mgr-row .cmdel:active{background:var(--red-light);}
+.cat-mgr-add{display:flex;gap:6px;margin-bottom:14px;}
+.cat-mgr-inp{width:auto;flex:1;padding:10px 12px!important;font-size:13px!important;}
+.cat-mgr-inp:first-child{max-width:52px;text-align:center;}
+.cat-mgr-add-btn{background:var(--navy);color:#fff;border:none;padding:10px 16px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;transition:transform .15s;}
+.cat-mgr-add-btn:active{transform:scale(.93);}
+.cat-mgr-empty{text-align:center;padding:20px;color:var(--t3);font-size:12px;}
+
 /* ── GOAL MODAL TITLE ── */
 .goal-modal-title{font-family:'Baloo 2',cursive;font-size:16px;font-weight:700;color:var(--t1);margin-bottom:14px;}
 .small-sheet{max-height:60dvh;}
@@ -654,7 +669,7 @@ input,button,select,textarea{
     <div class="cat-breakdown" id="catBreakdown"></div>
   </div>
 
-  <!-- ═══════════ SETTINGS SCREEN ═══════════ -->
+  <!-- ═══════════ SETTINGS SCREEN (CRUD HUB) ═══════════ -->
   <div class="screen" id="screen-settings">
     <div class="prof-hero">
       <div class="prof-av">A</div>
@@ -664,15 +679,36 @@ input,button,select,textarea{
     </div>
 
     <div class="set-section">
-      <div class="pro-banner" onclick="toast('Pro features coming soon! 🚀')">
-        <div class="pro-icon">⭐</div>
-        <div class="pro-txt">
-          <strong>Upgrade to Quanta Pro</strong>
-          <span>₹99/month · Budgets, Reports & AI Insights</span>
+      <div class="sec-title">🗂️ Data Management</div>
+      <div class="set-card">
+        <div class="set-row" onclick="openCatManager('expense')">
+          <div class="set-ico">🏷️</div>
+          <div class="set-txt"><strong>Expense Categories</strong><span id="expCatCount">Add, edit, or remove</span></div>
+          <div class="set-arr">›</div>
         </div>
-        <div class="pro-arr">›</div>
+        <div class="set-row" onclick="openCatManager('income')">
+          <div class="set-ico">🏷️</div>
+          <div class="set-txt"><strong>Income Categories</strong><span id="incCatCount">Add, edit, or remove</span></div>
+          <div class="set-arr">›</div>
+        </div>
+        <div class="set-row" onclick="navigate('budgets')">
+          <div class="set-ico">📊</div>
+          <div class="set-txt"><strong>Manage Budgets</strong><span>Set monthly spending limits</span></div>
+          <div class="set-arr">›</div>
+        </div>
+        <div class="set-row" onclick="navigate('goals')">
+          <div class="set-ico">🎯</div>
+          <div class="set-txt"><strong>Manage Goals</strong><span>Create and track savings goals</span></div>
+          <div class="set-arr">›</div>
+        </div>
+        <div class="set-row" onclick="navigate('txns')">
+          <div class="set-ico">📋</div>
+          <div class="set-txt"><strong>All Transactions</strong><span>View, filter, and delete entries</span></div>
+          <div class="set-arr">›</div>
+        </div>
       </div>
 
+      <div class="sec-title">⚙️ Preferences</div>
       <div class="set-card">
         <div class="set-row" onclick="toggleSetting(this)">
           <div class="set-ico">🔔</div>
@@ -691,15 +727,16 @@ input,button,select,textarea{
         </div>
       </div>
 
+      <div class="sec-title">💾 System</div>
       <div class="set-card">
-        <div class="set-row">
-          <div class="set-ico">🌐</div>
-          <div class="set-txt"><strong>Language</strong><span>English · தமிழ் / हिंदी coming soon</span></div>
+        <div class="set-row" onclick="exportCSV()">
+          <div class="set-ico">📥</div>
+          <div class="set-txt"><strong>Export Data</strong><span>Download all transactions as CSV</span></div>
           <div class="set-arr">›</div>
         </div>
-        <div class="set-row" onclick="exportCSV()">
-          <div class="set-ico">💾</div>
-          <div class="set-txt"><strong>Export Data</strong><span>Download as CSV</span></div>
+        <div class="set-row" onclick="resetCats();saveCats();toast('✅ Categories reset to defaults');updateCatCounts();">
+          <div class="set-ico">🔄</div>
+          <div class="set-txt"><strong>Reset Categories</strong><span>Restore default expense & income categories</span></div>
           <div class="set-arr">›</div>
         </div>
         <div class="set-row" onclick="clearData()">
@@ -712,7 +749,7 @@ input,button,select,textarea{
       <div class="set-card">
         <div class="set-row">
           <div class="set-ico">ℹ️</div>
-          <div class="set-txt"><strong>About Quanta Finance</strong><span>Version 1.0 MVP · Made in India 🇮🇳</span></div>
+          <div class="set-txt"><strong>About Quanta Finance</strong><span>v1.1 · Monthly Tracker · Made in India 🇮🇳</span></div>
           <div class="set-arr">›</div>
         </div>
       </div>
@@ -813,6 +850,25 @@ input,button,select,textarea{
   </div>
 </div>
 
+<!-- ═══════════ CATEGORY MANAGER MODAL ═══════════ -->
+<div class="overlay" id="catOverlay" onclick="closeIfOutside(event,'catOverlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="catSheetTitle">Manage Categories</div>
+    <div class="cat-mgr-type">
+      <button class="type-btn ae" id="catMgrExp" onclick="switchCatMgr('expense')">💸 Expense</button>
+      <button class="type-btn" id="catMgrInc" onclick="switchCatMgr('income')">💰 Income</button>
+    </div>
+    <div class="cat-mgr-list" id="catMgrList"></div>
+    <div class="cat-mgr-add">
+      <input class="f-inp cat-mgr-inp" id="catMgrEmoji" placeholder="emoji" maxlength="2">
+      <input class="f-inp cat-mgr-inp" id="catMgrName" placeholder="Category name">
+      <button class="cat-mgr-add-btn" onclick="addCat()">+ Add</button>
+    </div>
+    <button class="sub-btn" onclick="document.getElementById('catOverlay').classList.remove('open');updateDash();renderBudgets();">Done ✓</button>
+  </div>
+</div>
+
 <!-- BOTTOM NAV -->
 <nav class="bnav">
   <div class="bn active" id="bn-home" onclick="navigate('home')">
@@ -841,18 +897,34 @@ input,button,select,textarea{
 
 <script>
 // ── CONSTANTS ──
-const EXP_CATS=[
+const DEFAULT_EXP_CATS=[
   {id:'food',lbl:'Food',e:'🍛'},{id:'shopping',lbl:'Shopping',e:'🛍️'},
   {id:'transport',lbl:'Transport',e:'🚇'},{id:'rent',lbl:'Rent',e:'🏠'},
   {id:'bills',lbl:'Bills',e:'⚡'},{id:'education',lbl:'Study',e:'📚'},
   {id:'entertainment',lbl:'Fun',e:'🎉'},{id:'healthcare',lbl:'Health',e:'💊'},
   {id:'other',lbl:'Other',e:'📦'},
 ];
-const INC_CATS=[
+const DEFAULT_INC_CATS=[
   {id:'salary',lbl:'Salary',e:'💼'},{id:'freelance',lbl:'Freelance',e:'💻'},
   {id:'business',lbl:'Business',e:'🏪'},{id:'investment',lbl:'Invest',e:'📈'},
   {id:'gift',lbl:'Gift',e:'🎁'},{id:'other',lbl:'Other',e:'💵'},
 ];
+let EXP_CATS=[], INC_CATS=[];
+function loadCats(){
+  EXP_CATS=JSON.parse(localStorage.getItem('qf_exp_cats')||'null')||DEFAULT_EXP_CATS;
+  INC_CATS=JSON.parse(localStorage.getItem('qf_inc_cats')||'null')||DEFAULT_INC_CATS;
+}
+function saveCats(){
+  localStorage.setItem('qf_exp_cats',JSON.stringify(EXP_CATS));
+  localStorage.setItem('qf_inc_cats',JSON.stringify(INC_CATS));
+}
+function resetCats(){
+  EXP_CATS=DEFAULT_EXP_CATS.map(c=>({...c}));
+  INC_CATS=DEFAULT_INC_CATS.map(c=>({...c}));
+  saveCats();
+}
+loadCats();
+
 const CAT_COLORS=['#FF6B00','#138808','#120E6B','#D4900A','#C0392B','#9C27B0','#00838F','#E91E63','#607D8B'];
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -898,6 +970,59 @@ if(!txns.length){
 function saveTxns(){localStorage.setItem('qf_txns',JSON.stringify(txns));}
 function saveBudgets(){localStorage.setItem('qf_budgets',JSON.stringify(budgets));}
 function saveGoals(){localStorage.setItem('qf_goals',JSON.stringify(goals));}
+
+// ── CATEGORY CRUD ──
+let catMgrType='expense';
+function openCatManager(type){
+  catMgrType=type;
+  document.getElementById('catSheetTitle').textContent='Manage '+(type==='expense'?'Expense':'Income')+' Categories';
+  switchCatMgr(type);
+  document.getElementById('catOverlay').classList.add('open');
+}
+function switchCatMgr(type){
+  catMgrType=type;
+  document.getElementById('catMgrExp').className='type-btn'+(type==='expense'?' ae':'');
+  document.getElementById('catMgrInc').className='type-btn'+(type==='income'?' ai':'');
+  renderCatMgr();
+}
+function renderCatMgr(){
+  const cats=catMgrType==='expense'?EXP_CATS:INC_CATS;
+  const el=document.getElementById('catMgrList');
+  if(!cats.length){el.innerHTML='<div class="cat-mgr-empty">No categories. Add one below!</div>';return;}
+  el.innerHTML=cats.map(c=>`<div class="cat-mgr-row">
+    <span class="cme">${c.e}</span>
+    <span class="cml">${c.lbl}</span>
+    <span class="cmdel" onclick="deleteCat('${catMgrType}','${c.id}')">✕</span>
+  </div>`).join('');
+}
+function addCat(){
+  const emoji=document.getElementById('catMgrEmoji').value.trim()||'📦';
+  const name=document.getElementById('catMgrName').value.trim();
+  if(!name){toast('Please enter a category name');return;}
+  const id=name.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now();
+  const cats=catMgrType==='expense'?EXP_CATS:INC_CATS;
+  cats.push({id,lbl:name,e:emoji});
+  saveCats();
+  document.getElementById('catMgrEmoji').value='';
+  document.getElementById('catMgrName').value='';
+  renderCatMgr();
+  updateCatCounts();
+  toast('✅ '+(catMgrType==='expense'?'Expense':'Income')+' category added');
+}
+function deleteCat(type,id){
+  if(!confirm('Delete this category?'))return;
+  const cats=type==='expense'?EXP_CATS:INC_CATS;
+  const idx=cats.findIndex(c=>c.id===id);
+  if(idx>-1)cats.splice(idx,1);
+  saveCats();
+  if(catMgrType===type)renderCatMgr();
+  updateCatCounts();
+  toast('🗑️ Category deleted');
+}
+function updateCatCounts(){
+  document.getElementById('expCatCount').textContent=EXP_CATS.length+' categories';
+  document.getElementById('incCatCount').textContent=INC_CATS.length+' categories';
+}
 
 // ── HELPERS ──
 function fmt(n){return Number(n).toLocaleString('en-IN');}
@@ -1235,6 +1360,7 @@ function navigate(name){
   if(name==='budgets')renderBudgets();
   if(name==='goals')renderGoals();
   if(name==='reports')setTimeout(renderReports,60);
+  if(name==='settings')updateCatCounts();
   document.getElementById('screenWrap').scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1303,6 +1429,7 @@ setTimeout(()=>{
   setTimeout(()=>sp.style.display='none',600);
 },2000);
 updateDash();
+updateCatCounts();
 
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
