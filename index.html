@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#120E6B">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.json">
-<title>Quanta Finance — Smart Money</title>
+<title>Quanta Finance — Monthly Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -322,6 +322,26 @@ input,button,select,textarea{
   box-shadow:0 1px 3px rgba(0,0,0,.2);
 }
 .set-toggle.on::after{transform:translateX(20px);}
+/* ── MONTHLY FLOW & SUMMARY ── */
+.hero-flow{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;padding:10px 12px;margin-bottom:14px;display:flex;
+  align-items:center;justify-content:space-between;
+}
+.hero-flow-lbl{color:rgba(255,255,255,.45);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+.hero-flow-val{font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;}
+.hero-flow-val.pos{color:#4CAF50;}
+.hero-flow-val.neg{color:#FF5252;}
+.hero-comp{color:rgba(255,255,255,.5);font-size:10px;display:flex;align-items:center;gap:3px;}
+.hero-comp b{font-size:11px;}
+.hero-comp .pos{color:#4CAF50;}
+.hero-comp .neg{color:#FF5252;}
+.month-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:20px;}
+.ms-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:12px;text-align:center;}
+.ms-val{font-family:'Baloo 2',cursive;font-size:18px;font-weight:700;color:var(--t1);}
+.ms-lbl{font-size:10px;color:var(--t3);margin-top:2px;}
+.ms-sub{font-size:9px;color:var(--t3);margin-top:1px;}
+
 .pro-banner{
   background:linear-gradient(135deg,var(--saffron),var(--gold2));
   border-radius:var(--r);padding:16px;margin:0 0 14px;
@@ -538,11 +558,24 @@ input,button,select,textarea{
           <div class="hero-box-val">₹<span id="expAmt">0</span></div>
         </div>
       </div>
+      <div class="hero-flow">
+        <div>
+          <div class="hero-flow-lbl">Net Cash Flow</div>
+          <div class="hero-flow-val pos" id="flowVal">₹0</div>
+        </div>
+        <div class="hero-comp" id="monthComp">vs last month <b>—</b></div>
+      </div>
       <div class="sv-bar-lbl">
         <span>Savings Rate</span>
         <strong id="savPct">0%</strong>
       </div>
       <div class="sv-track"><div class="sv-fill" id="savFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="month-summary" id="monthSummary">
+      <div class="ms-card"><div class="ms-val" id="msTxns">0</div><div class="ms-lbl">Transactions</div><div class="ms-sub">this month</div></div>
+      <div class="ms-card"><div class="ms-val" id="msAvg">₹0</div><div class="ms-lbl">Avg/Day</div><div class="ms-sub">spending</div></div>
+      <div class="ms-card"><div class="ms-val" id="msTop">—</div><div class="ms-lbl">Top Category</div><div class="ms-sub">by spend</div></div>
     </div>
 
     <div class="sec-title mt14">Quick Actions</div>
@@ -887,6 +920,12 @@ function changeMonth(dir){
 }
 
 // ── DASHBOARD ──
+function monthData(m,y){
+  const list=txns.filter(t=>{const d=new Date(t.date);return d.getMonth()===m&&d.getFullYear()===y;});
+  const inc=list.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
+  const exp=list.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
+  return {list,inc,exp,bal:inc-exp};
+}
 function updateDash(){
   const mt=monthTxns();
   const inc=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
@@ -898,6 +937,36 @@ function updateDash(){
   document.getElementById('expAmt').textContent=fmt(exp);
   document.getElementById('savPct').textContent=pct+'%';
   document.getElementById('savFill').style.width=Math.min(100,pct)+'%';
+
+  // Net Cash Flow
+  const flowEl=document.getElementById('flowVal');
+  flowEl.textContent='₹'+fmt(bal);
+  flowEl.className='hero-flow-val '+(bal>=0?'pos':'neg');
+
+  // Month-over-month comparison
+  let prevM=viewMonth-1, prevY=viewYear;
+  if(prevM<0){prevM=11;prevY--;}
+  const prev=monthData(prevM,prevY);
+  const compEl=document.getElementById('monthComp');
+  if(prev.list.length){
+    const diff=bal-prev.bal;
+    const arrow=diff>0?'↑':diff<0?'↓':'→';
+    const cls=diff>0?'pos':diff<0?'neg':'';
+    compEl.innerHTML=`vs last month <b class="${cls}">${arrow} ₹${fmt(Math.abs(diff))}</b>`;
+  } else {
+    compEl.innerHTML='vs last month <b>—</b>';
+  }
+
+  // Month at a Glance
+  document.getElementById('msTxns').textContent=mt.length;
+  const daysInMonth=new Date(viewYear,viewMonth+1,0).getDate();
+  const avg=mt.length?Math.round(exp/daysInMonth):0;
+  document.getElementById('msAvg').textContent='₹'+fmt(avg);
+  const catTotals={};
+  mt.filter(t=>t.type==='expense').forEach(t=>{catTotals[t.cat]=(catTotals[t.cat]||0)+t.amt;});
+  const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('msTop').textContent=sorted.length?catInfo('expense',sorted[0][0]).e+' '+catInfo('expense',sorted[0][0]).lbl:'—';
+
   const chips=pct>30?'🔥 Great savings rate!':pct>15?'👍 Keep it up!':inc>0?'⚠️ Save ₹'+fmt(Math.round(inc*0.2-bal)+500)+' more':'💡 Add income first';
   document.getElementById('insightChip').textContent=chips;
   renderRecent();
