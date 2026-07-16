@@ -415,6 +415,9 @@ input,button,select,textarea{
 .cat-btn:active{transform:scale(.93);}
 .cat-btn.sel{border-color:var(--saffron);background:var(--saffron-light);color:var(--saffron);}
 .cat-btn span{font-size:18px;}
+.cat-tag{font-size:8px!important;font-weight:600;opacity:.6;margin-top:1px;}
+.cat-tag.income{color:var(--green);}
+.cat-tag.expense{color:var(--saffron);}
 .sub-btn{
   width:100%;padding:14px;background:var(--navy);color:#fff;border:none;
   border-radius:12px;font-family:'Baloo 2',cursive;font-size:15px;font-weight:700;
@@ -1362,29 +1365,31 @@ function openTxnModal(type){
   document.getElementById('inpAmt').value='';
   document.getElementById('inpNote').value='';
   document.getElementById('inpDate').value=new Date().toISOString().split('T')[0];
-  renderCatGrid(type);setTxnType(type);
+  renderCatGrid();setTxnType(type);
   document.getElementById('txnOverlay').classList.add('open');
-  // Focus amount after animation
   setTimeout(()=>document.getElementById('inpAmt').focus(),350);
 }
 function setTxnType(type){
   curType=type;selCat='';
   document.getElementById('btnExp').className='type-btn'+(type==='expense'?' ae':'');
   document.getElementById('btnInc').className='type-btn'+(type==='income'?' ai':'');
-  renderCatGrid(type);
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('sel'));
 }
-function renderCatGrid(type){
-  const cats=type==='income'?INC_CATS:EXP_CATS;
-  document.getElementById('catGrid').innerHTML=cats.map(c=>`
-    <div class="cat-btn" id="cb-${c.id}" onclick="selCatFn('${c.id}')">
+function renderCatGrid(){
+  const all=[...EXP_CATS.map(c=>({...c,_t:'expense'})),...INC_CATS.map(c=>({...c,_t:'income'}))];
+  document.getElementById('catGrid').innerHTML=all.map(c=>`
+    <div class="cat-btn" id="cb-${c.id}" onclick="selCatFn('${c.id}')" data-type="${c._t}">
       <span>${c.e}</span>${c.lbl}
+      <span class="cat-tag ${c._t}">${c._t==='expense'?'💸':'💰'}</span>
     </div>`).join('');
 }
 function selCatFn(id){
   selCat=id;
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('sel'));
   const el=document.getElementById('cb-'+id);
-  if(el)el.classList.add('sel');
+  if(el){el.classList.add('sel');curType=el.dataset.type;}
+  document.getElementById('btnExp').className='type-btn'+(curType==='expense'?' ae':'');
+  document.getElementById('btnInc').className='type-btn'+(curType==='income'?' ai':'');
 }
 function submitTxn(){
   const amt=parseFloat(document.getElementById('inpAmt').value);
