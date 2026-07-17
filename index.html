@@ -561,7 +561,7 @@ input,button,select,textarea{
   <!-- ═══════════ HOME SCREEN ═══════════ -->
   <div class="screen active" id="screen-home">
     <div class="greeting-bar">
-      <div class="greeting">Namaste, <strong>Arun Kumar</strong> 👋</div>
+      <div class="greeting">Namaste, <strong id="greetName">Arun Kumar</strong> 👋</div>
       <div class="insight-chip" id="insightChip">💡 Loading…</div>
     </div>
 
@@ -963,12 +963,7 @@ if(!Object.keys(budgets).length){
   saveBudgets();
 }
 if(!goals){
-  goals=[
-    {name:'Emergency Fund',e:'🛡️',target:100000,current:42000},
-    {name:'New Bike',e:'🏍️',target:75000,current:31500},
-    {name:'Goa Trip',e:'🏖️',target:25000,current:18000},
-    {name:'iPhone 16',e:'📱',target:80000,current:12000},
-  ];saveGoals();
+  goals=[];saveGoals();
 }
 if(!txns.length){
   const now=new Date(),y=now.getFullYear(),m=now.getMonth();
@@ -1004,6 +999,8 @@ function renderProfile(){
   document.getElementById('profAv').textContent=initial;
   document.getElementById('profName').textContent=profile.name;
   document.getElementById('profSub').textContent=profile.sub;
+  const greet=document.getElementById('greetName');
+  if(greet)greet.textContent=profile.name;
 }
 function openProfileEditor(){
   document.getElementById('profEditName').value=profile.name;
@@ -1192,6 +1189,8 @@ function deleteTxn(e,id){
   setTimeout(()=>{
     txns=txns.filter(t=>t.id!==id);
     saveTxns();updateDash();renderAllTxns();
+    const budScreen=document.getElementById('screen-budgets');
+    if(budScreen&&budScreen.classList.contains('active'))renderBudgets();
     toast('🗑️ Transaction deleted');
   },200);
 }
@@ -1394,6 +1393,8 @@ function submitTxn(){
   txns.unshift(txn);saveTxns();
   document.getElementById('txnOverlay').classList.remove('open');
   updateDash();
+  const budScreen=document.getElementById('screen-budgets');
+  if(budScreen&&budScreen.classList.contains('active'))renderBudgets();
   toast(curType==='income'?'✅ Income recorded!':'✅ Expense added!');
 }
 
