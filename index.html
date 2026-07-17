@@ -1495,13 +1495,27 @@ function toast(msg){
   toastTimer=setTimeout(()=>el.classList.remove('show'),2600);
 }
 
-// ── KEYBOARD HANDLING (push up sheet when keyboard shows) ──
+// ── KEYBOARD HANDLING (keep inputs visible on mobile) ──
 if(window.visualViewport){
   window.visualViewport.addEventListener('resize',()=>{
+    const vh=window.visualViewport.height;
+    const gap=window.innerHeight-vh;
     const openSheet=document.querySelector('.overlay.open .sheet');
     if(openSheet){
-      const gap=window.innerHeight-window.visualViewport.height;
-      openSheet.style.marginBottom=gap>50?gap+'px':'';
+      if(gap>50){
+        openSheet.style.maxHeight=Math.max(200,vh-40)+'px';
+        openSheet.style.marginBottom=gap+'px';
+      }else{
+        openSheet.style.maxHeight='';
+        openSheet.style.marginBottom='';
+      }
+    }
+  });
+  document.addEventListener('focusin',e=>{
+    const inp=e.target.closest('.f-inp,select');
+    if(inp){
+      const sheet=inp.closest('.sheet');
+      if(sheet)setTimeout(()=>inp.scrollIntoView({block:'center',behavior:'smooth'}),350);
     }
   });
 }
