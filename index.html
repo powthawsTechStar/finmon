@@ -261,9 +261,11 @@ input,button,select,textarea{
   background:var(--navy-light);color:var(--navy);
   border:none;border-radius:10px;font-size:13px;font-weight:600;
   cursor:pointer;font-family:'Poppins',sans-serif;
-  transition:all .2s;
+  transition:all .2s;user-select:none;
 }
 .goal-add-btn:active{background:#dddaf0;transform:scale(.98);}
+.goal-del-btn{background:var(--red-light);color:var(--red);}
+.goal-del-btn:active{background:#fcd6d0!important;}
 
 /* ── REPORTS SCREEN ── */
 .rpt-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 16px;}
@@ -818,7 +820,7 @@ input,button,select,textarea{
 <div class="overlay" id="goalOverlay" onclick="closeIfOutside(event,'goalOverlay')">
   <div class="sheet small-sheet">
     <div class="sheet-handle"></div>
-    <div class="goal-modal-title">New Savings Goal</div>
+    <div class="goal-modal-title" id="goalModalTitle">New Savings Goal</div>
     <div class="f-grp">
       <div class="f-lbl">Goal Name</div>
       <input class="f-inp" id="goalName" type="text" placeholder="e.g. Emergency Fund" autocomplete="off">
@@ -834,7 +836,7 @@ input,button,select,textarea{
       <div class="f-lbl">Emoji Icon</div>
       <input class="f-inp" id="goalEmoji" type="text" placeholder="🎯" maxlength="2" autocomplete="off">
     </div>
-    <button class="sub-btn" onclick="saveGoal()">Create Goal ✓</button>
+    <button class="sub-btn" onclick="saveGoal()" id="goalSaveBtn">Create Goal ✓</button>
   </div>
 </div>
 
@@ -1253,7 +1255,8 @@ function saveBudget(){
   renderBudgets();toast('✅ Budget saved!');
 }
 
-// ── GOALS ──
+// ── GOALS CRUD ──
+let editGoalIdx=null;
 function renderGoals(){
   const el=document.getElementById('goalsList');
   if(!goals.length){el.innerHTML='<div class="txn-empty"><div class="big-e">🎯</div>No goals yet.<br>Create your first savings goal!</div>';return;}
@@ -1270,21 +1273,54 @@ function renderGoals(){
         <span>Saved: <strong>₹${fmt(g.current)}</strong></span>
         <span>Left: <strong>₹${fmt(Math.max(0,g.target-g.current))}</strong></span>
       </div>
-      ${pct<100?`<button class="goal-add-btn" onclick="openContrib(${i})">+ Add Savings</button>`:`<button class="goal-add-btn" style="background:var(--green-light);color:var(--green)">🎉 Goal Achieved!</button>`}
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        ${pct<100?`<button class="goal-add-btn" style="flex:1" onclick="openContrib(${i})">+ Add Savings</button>`:`<button class="goal-add-btn" style="flex:1;background:var(--green-light);color:var(--green)">🎉 Goal Achieved!</button>`}
+        <button class="goal-add-btn" style="flex:0;padding:10px 14px;background:var(--navy-light)" onclick="editGoal(${i})">✏️</button>
+        <button class="goal-add-btn goal-del-btn" style="flex:0;padding:10px 14px" onclick="deleteGoal(${i})">🗑️</button>
+      </div>
     </div>`;
   }).join('');
 }
-function openGoalModal(){document.getElementById('goalOverlay').classList.add('open');}
+function openGoalModal(){
+  editGoalIdx=null;
+  document.getElementById('goalModalTitle').textContent='New Savings Goal';
+  document.getElementById('goalSaveBtn').textContent='Create Goal ✓';
+  document.getElementById('goalName').value='';
+  document.getElementById('goalTarget').value='';
+  document.getElementById('goalEmoji').value='';
+  document.getElementById('goalOverlay').classList.add('open');
+}
+function editGoal(idx){
+  editGoalIdx=idx;
+  const g=goals[idx];
+  document.getElementById('goalModalTitle').textContent='Edit Goal';
+  document.getElementById('goalSaveBtn').textContent='Save Changes ✓';
+  document.getElementById('goalName').value=g.name;
+  document.getElementById('goalTarget').value=g.target;
+  document.getElementById('goalEmoji').value=g.e;
+  document.getElementById('goalOverlay').classList.add('open');
+}
+function deleteGoal(idx){
+  if(!confirm('Delete "'+goals[idx].name+'"?'))return;
+  goals.splice(idx,1);saveGoals();
+  renderGoals();toast('🗑️ Goal deleted');
+}
 function saveGoal(){
   const name=document.getElementById('goalName').value.trim();
   const target=parseFloat(document.getElementById('goalTarget').value);
   const e=document.getElementById('goalEmoji').value||'🎯';
   if(!name){toast('Please enter a goal name');return;}
   if(!target||target<=0){toast('Please enter a valid target');return;}
-  goals.push({name,e,target,current:0});saveGoals();
+  if(editGoalIdx!==null){
+    const g=goals[editGoalIdx];
+    g.name=name;g.target=target;g.e=e;
+    saveGoals();toast('✅ Goal updated');
+  } else {
+    goals.push({name,e,target,current:0});saveGoals();
+    toast('🎯 Goal created!');
+  }
   document.getElementById('goalOverlay').classList.remove('open');
-  ['goalName','goalTarget','goalEmoji'].forEach(id=>document.getElementById(id).value='');
-  renderGoals();toast('🎯 Goal created!');
+  renderGoals();
 }
 function openContrib(idx){
   contribIdx=idx;
