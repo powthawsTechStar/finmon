@@ -1096,10 +1096,15 @@ function saveBudgets(){localStorage.setItem(k('qf_budgets'),JSON.stringify(budge
 function saveGoals(){localStorage.setItem(k('qf_goals'),JSON.stringify(goals));}
 
 // ── PROFILE CRUD ──
-let profile={name:'Arun Kumar',sub:'Software Engineer · Chennai, TN'};
+let profile={name:'User',sub:'India'};
 function loadProfile(){
   const saved=JSON.parse(localStorage.getItem(k('qf_profile'))||'null');
-  if(saved){profile=saved;}
+  if(saved){profile=saved;return;}
+  if(SESSION){
+    const users=getUsers();
+    const user=users.find(u=>u.email===SESSION.email);
+    if(user){profile.name=user.name;profile.sub='India';}
+  }
 }
 function saveProfileStore(){localStorage.setItem(k('qf_profile'),JSON.stringify(profile));}
 function renderProfile(){
